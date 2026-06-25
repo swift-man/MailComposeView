@@ -1,5 +1,13 @@
 # MailComposeView
 
+![Badge](https://img.shields.io/badge/swift-white.svg?style=flat-square&logo=Swift)
+![Badge](https://img.shields.io/badge/SwiftUI-001b87.svg?style=flat-square&logo=Swift&logoColor=black)
+![Badge - Version](https://img.shields.io/badge/Version-0.1.0-1177AA?style=flat-square)
+![Badge - Swift Package Manager](https://img.shields.io/badge/SPM-compatible-orange?style=flat-square)
+![Badge - Platform iOS](https://img.shields.io/badge/iOS-v13.0-yellow?style=flat-square)
+![Badge - Platform macOS](https://img.shields.io/badge/macOS-v10.15-lightgrey?style=flat-square)
+![Badge - License](https://img.shields.io/badge/license-MIT-black?style=flat-square)
+
 SwiftUI wrapper for `MFMailComposeViewController`.
 
 `MailComposeView` keeps app-specific copy, recipients, and fallback UI outside the package. The package only provides a small reusable compose surface.
