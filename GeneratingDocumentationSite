@@ -14,6 +14,22 @@ MINIMUM_ACCESS_LEVEL="${MINIMUM_ACCESS_LEVEL:-public}"
 
 DOCC="$(xcrun --find docc)"
 
+assert_safe_generated_path() {
+  name="$1"
+  path="$2"
+
+  case "$path" in
+    ""|"."|"./"|".."|"/"|/*|../*|*/..|*/../*)
+      echo "error: unsafe $name path: $path" >&2
+      exit 1
+      ;;
+  esac
+}
+
+assert_safe_generated_path "SYMBOL_GRAPH_PATH" "$SYMBOL_GRAPH_PATH"
+assert_safe_generated_path "DOCS_OUTPUT_PATH" "$DOCS_OUTPUT_PATH"
+assert_safe_generated_path "DOCC_ARCHIVE_PATH" "$DOCC_ARCHIVE_PATH"
+
 rm -rf "$SYMBOL_GRAPH_PATH" "$DOCS_OUTPUT_PATH" "$DOCC_ARCHIVE_PATH"
 mkdir -p "$SYMBOL_GRAPH_PATH"
 
