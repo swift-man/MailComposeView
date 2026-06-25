@@ -93,6 +93,8 @@ guard MailComposeView.canSendMail else {
 }
 ```
 
+If `MailComposeView` is presented on a device or platform where mail composition is unavailable, the completion handler receives `.unavailable`.
+
 ## Documentation
 
 Generate the DocC site locally with:
@@ -108,5 +110,6 @@ The generated static site is written to `docs/`. On `main`, GitHub Actions publi
 - `MailDraft`
 - `MailAttachment`
 - `MailComposeResult`
+- `MailComposeResult.unavailable`
 - `MailComposeView`
 - `MailComposeView.canSendMail`

@@ -53,4 +53,25 @@ final class MailComposeViewTests: XCTestCase {
     XCTAssertFalse(MailComposeView.canSendMail)
     #endif
   }
+
+  func testMailComposeViewStoresDraft() {
+    let draft = MailDraft(
+      id: UUID(),
+      recipients: ["support@example.com"],
+      subject: "Help",
+      body: "Hello"
+    )
+    let view = MailComposeView(draft: draft) { _ in }
+
+    XCTAssertEqual(view.draft, draft)
+  }
+
+  func testMailComposeResultSupportsUnavailableState() {
+    let result = MailComposeResult.unavailable
+
+    guard case .unavailable = result else {
+      XCTFail("Expected unavailable result")
+      return
+    }
+  }
 }

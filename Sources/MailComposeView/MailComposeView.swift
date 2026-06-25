@@ -94,6 +94,9 @@ public enum MailComposeResult {
   /// The message was queued or sent.
   case sent
 
+  /// Mail composition is unavailable on the current device or platform.
+  case unavailable
+
   /// The compose sheet failed, optionally with the underlying error.
   case failed(Error?)
 }
@@ -104,7 +107,7 @@ import UIKit
 
 /// A SwiftUI wrapper around `MFMailComposeViewController`.
 public struct MailComposeView: UIViewControllerRepresentable {
-  public typealias UIViewControllerType = MFMailComposeViewController
+  public typealias UIViewControllerType = UIViewController
 
   /// The draft used to configure the mail compose sheet.
   public let draft: MailDraft
@@ -130,8 +133,16 @@ public struct MailComposeView: UIViewControllerRepresentable {
     self.onFinish = onFinish
   }
 
-  /// Creates the underlying UIKit mail compose view controller.
-  public func makeUIViewController(context: Context) -> MFMailComposeViewController {
+  /// Creates the underlying UIKit view controller.
+  public func makeUIViewController(context: Context) -> UIViewController {
+    guard Self.canSendMail else {
+      DispatchQueue.main.async {
+        context.coordinator.finish(.unavailable)
+      }
+
+      return UIViewController()
+    }
+
     let viewController = MFMailComposeViewController()
     viewController.mailComposeDelegate = context.coordinator
     viewController.setToRecipients(draft.recipients)
@@ -152,7 +163,7 @@ public struct MailComposeView: UIViewControllerRepresentable {
   }
 
   /// Updates the underlying UIKit view controller.
-  public func updateUIViewController(_ uiViewController: MFMailComposeViewController, context: Context) {}
+  public func updateUIViewController(_ uiViewController: UIViewController, context: Context) {}
 
   /// Creates the delegate coordinator.
   public func makeCoordinator() -> Coordinator {
@@ -162,6 +173,7 @@ public struct MailComposeView: UIViewControllerRepresentable {
   /// The delegate object that bridges UIKit completion callbacks to SwiftUI.
   public final class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
     private let onFinish: (MailComposeResult) -> Void
+    private var didFinish = false
 
     init(onFinish: @escaping (MailComposeResult) -> Void) {
       self.onFinish = onFinish
@@ -174,8 +186,17 @@ public struct MailComposeView: UIViewControllerRepresentable {
     ) {
       let composeResult = MailComposeResult(result: result, error: error)
       controller.dismiss(animated: true) {
-        self.onFinish(composeResult)
+        self.finish(composeResult)
       }
+    }
+
+    func finish(_ result: MailComposeResult) {
+      guard !didFinish else {
+        return
+      }
+
+      didFinish = true
+      onFinish(result)
     }
   }
 }
@@ -202,8 +223,9 @@ public struct MailComposeView: View {
   /// The draft retained for API consistency on unsupported platforms.
   public let draft: MailDraft
 
-  /// A closure called with `.failed(nil)` when the fallback view appears.
+  /// A closure called with `.unavailable` when the fallback view appears.
   public let onFinish: (MailComposeResult) -> Void
+  @State private var didFinish = false
 
   /// A Boolean value that is always `false` on unsupported platforms.
   public static var canSendMail: Bool {
@@ -214,7 +236,7 @@ public struct MailComposeView: View {
   ///
   /// - Parameters:
   ///   - draft: The draft retained for API consistency.
-  ///   - onFinish: A closure called with `.failed(nil)` when the fallback view appears.
+  ///   - onFinish: A closure called with `.unavailable` when the fallback view appears.
   public init(
     draft: MailDraft,
     onFinish: @escaping (MailComposeResult) -> Void
@@ -223,11 +245,18 @@ public struct MailComposeView: View {
     self.onFinish = onFinish
   }
 
-  /// A view that reports mail composition failure when it appears.
+  /// A view that reports mail composition unavailability when it appears.
   public var body: some View {
     EmptyView()
       .onAppear {
-        onFinish(.failed(nil))
+        guard !didFinish else {
+          return
+        }
+
+        didFinish = true
+        DispatchQueue.main.async {
+          onFinish(.unavailable)
+        }
       }
   }
 }

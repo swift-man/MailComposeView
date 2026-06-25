@@ -37,6 +37,8 @@ let attachment = MailAttachment(
 )
 ```
 
+If the view is presented where mail composition is unavailable, the completion handler receives ``MailComposeResult/unavailable``.
+
 ## Topics
 
 ### Compose View
