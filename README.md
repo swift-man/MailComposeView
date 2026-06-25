@@ -93,6 +93,16 @@ guard MailComposeView.canSendMail else {
 }
 ```
 
+## Documentation
+
+Generate the DocC site locally with:
+
+```sh
+./GeneratingDocumentationSite
+```
+
+The generated static site is written to `docs/`. On `main`, GitHub Actions publishes that output to the `MailComposeView` directory in `swift-man/docs`.
+
 ## Public API
 
 - `MailDraft`

@@ -16,3 +16,6 @@ jobs:
 
       - name: Run Swift tests
         run: swift test
+
+      - name: Build DocC documentation
+        run: ./GeneratingDocumentationSite

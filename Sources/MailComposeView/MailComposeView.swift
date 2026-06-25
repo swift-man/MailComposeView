@@ -1,11 +1,23 @@
 import Foundation
 import SwiftUI
 
+/// A file attachment to include in a mail draft.
 public struct MailAttachment: Equatable {
+  /// The raw attachment contents.
   public let data: Data
+
+  /// The MIME type of the attachment, such as `text/plain` or `image/png`.
   public let mimeType: String
+
+  /// The filename shown to the recipient.
   public let fileName: String
 
+  /// Creates a mail attachment.
+  ///
+  /// - Parameters:
+  ///   - data: The raw attachment contents.
+  ///   - mimeType: The MIME type of the attachment.
+  ///   - fileName: The filename shown to the recipient.
   public init(data: Data, mimeType: String, fileName: String) {
     self.data = data
     self.mimeType = mimeType
@@ -13,16 +25,43 @@ public struct MailAttachment: Equatable {
   }
 }
 
+/// The message content and recipients used to configure the mail compose sheet.
 public struct MailDraft: Identifiable, Equatable {
+  /// A stable identifier for SwiftUI sheet presentation.
   public let id: UUID
+
+  /// Primary recipient email addresses.
   public let recipients: [String]
+
+  /// Carbon-copy recipient email addresses.
   public let ccRecipients: [String]
+
+  /// Blind-carbon-copy recipient email addresses.
   public let bccRecipients: [String]
+
+  /// The email subject.
   public let subject: String
+
+  /// The email body.
   public let body: String
+
+  /// A Boolean value that indicates whether ``body`` contains HTML.
   public let isHTML: Bool
+
+  /// Files to attach to the message.
   public let attachments: [MailAttachment]
 
+  /// Creates a mail draft.
+  ///
+  /// - Parameters:
+  ///   - id: A stable identifier for SwiftUI sheet presentation.
+  ///   - recipients: Primary recipient email addresses.
+  ///   - ccRecipients: Carbon-copy recipient email addresses.
+  ///   - bccRecipients: Blind-carbon-copy recipient email addresses.
+  ///   - subject: The email subject.
+  ///   - body: The email body.
+  ///   - isHTML: Whether `body` contains HTML.
+  ///   - attachments: Files to attach to the message.
   public init(
     id: UUID = UUID(),
     recipients: [String] = [],
@@ -44,10 +83,18 @@ public struct MailDraft: Identifiable, Equatable {
   }
 }
 
+/// The result returned when the mail compose sheet finishes.
 public enum MailComposeResult {
+  /// The user cancelled the message.
   case cancelled
+
+  /// The user saved the message as a draft.
   case saved
+
+  /// The message was queued or sent.
   case sent
+
+  /// The compose sheet failed, optionally with the underlying error.
   case failed(Error?)
 }
 
@@ -55,16 +102,26 @@ public enum MailComposeResult {
 import MessageUI
 import UIKit
 
+/// A SwiftUI wrapper around `MFMailComposeViewController`.
 public struct MailComposeView: UIViewControllerRepresentable {
   public typealias UIViewControllerType = MFMailComposeViewController
 
+  /// The draft used to configure the mail compose sheet.
   public let draft: MailDraft
+
+  /// A closure called after the sheet finishes and dismisses.
   public let onFinish: (MailComposeResult) -> Void
 
+  /// A Boolean value that indicates whether the current device can send mail.
   public static var canSendMail: Bool {
     MFMailComposeViewController.canSendMail()
   }
 
+  /// Creates a mail compose view for a draft.
+  ///
+  /// - Parameters:
+  ///   - draft: The draft used to configure the mail compose sheet.
+  ///   - onFinish: A closure called after the sheet finishes and dismisses.
   public init(
     draft: MailDraft,
     onFinish: @escaping (MailComposeResult) -> Void
@@ -73,6 +130,7 @@ public struct MailComposeView: UIViewControllerRepresentable {
     self.onFinish = onFinish
   }
 
+  /// Creates the underlying UIKit mail compose view controller.
   public func makeUIViewController(context: Context) -> MFMailComposeViewController {
     let viewController = MFMailComposeViewController()
     viewController.mailComposeDelegate = context.coordinator
@@ -93,12 +151,15 @@ public struct MailComposeView: UIViewControllerRepresentable {
     return viewController
   }
 
+  /// Updates the underlying UIKit view controller.
   public func updateUIViewController(_ uiViewController: MFMailComposeViewController, context: Context) {}
 
+  /// Creates the delegate coordinator.
   public func makeCoordinator() -> Coordinator {
     Coordinator(onFinish: onFinish)
   }
 
+  /// The delegate object that bridges UIKit completion callbacks to SwiftUI.
   public final class Coordinator: NSObject, MFMailComposeViewControllerDelegate {
     private let onFinish: (MailComposeResult) -> Void
 
@@ -136,14 +197,24 @@ private extension MailComposeResult {
   }
 }
 #else
+/// A fallback SwiftUI view used when `MessageUI` and `UIKit` are unavailable.
 public struct MailComposeView: View {
+  /// The draft retained for API consistency on unsupported platforms.
   public let draft: MailDraft
+
+  /// A closure called with `.failed(nil)` when the fallback view appears.
   public let onFinish: (MailComposeResult) -> Void
 
+  /// A Boolean value that is always `false` on unsupported platforms.
   public static var canSendMail: Bool {
     false
   }
 
+  /// Creates a fallback mail compose view.
+  ///
+  /// - Parameters:
+  ///   - draft: The draft retained for API consistency.
+  ///   - onFinish: A closure called with `.failed(nil)` when the fallback view appears.
   public init(
     draft: MailDraft,
     onFinish: @escaping (MailComposeResult) -> Void
@@ -152,6 +223,7 @@ public struct MailComposeView: View {
     self.onFinish = onFinish
   }
 
+  /// A view that reports mail composition failure when it appears.
   public var body: some View {
     EmptyView()
       .onAppear {
